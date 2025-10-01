@@ -1,4 +1,5 @@
 // Create our only scene called Main
+// This class can be refactored big time!
 class Main {
     // The three methods (currently empty)
 
@@ -9,6 +10,7 @@ class Main {
         this.load.image('wallV', 'assets/wallVertical.png')
         this.load.image('wallH', 'assets/wallHorizontal.png')
         this.load.image('coin', 'assets/coin.png')
+        this.load.image('enemy', 'assets/enemy.png')
     }
 
     create() {
@@ -22,6 +24,15 @@ class Main {
         this.scoreLabel = this.add.text(30, 25, 'score: 0',
             { font: '18px Arial', fill: '#fff' })
         this.score = 0
+
+        this.enemies = this.physics.add.group()
+
+        // Call 'addEnemy' every 2.2 seconds
+        this.time.addEvent({
+            delay: 2200,
+            callback: () => this.addEnemy(),
+            loop: true
+        })
     }
 
     update() {
@@ -38,6 +49,12 @@ class Main {
         // if player object overlaps with coin object
         if (this.physics.overlap(this.player, this.coin)) {
             this.takeCoin()
+        }
+        // Make the enemies and walls collide
+        this.physics.collide(this.enemies, this.walls)
+        // Call the 'playerDie' method when the player and an enemy overlap
+        if (this.physics.overlap(this.player, this.enemies)) {
+            this.playerDie()
         }
     }
 
@@ -103,6 +120,18 @@ class Main {
         let newPosition = Phaser.Math.RND.pick(positions)
         // Set the new position of the coin
         this.coin.setPosition(newPosition.x, newPosition.y)
+    }
+
+    addEnemy() {
+        let enemy = this.enemies.create(250, -10, 'enemy')
+        enemy.body.gravity.y = 500
+        enemy.body.velocity.x = Phaser.Math.RND.pick([-100, 100])
+        enemy.body.bounce.x = 1
+
+        this.time.addEvent({
+            delay: 10000,
+            callback: () => enemy.destroy()
+        })
     }
 
 }
