@@ -4,6 +4,21 @@ class Play {
         // It will initialize our scene, like the positions of the sprites
         this.player = this.physics.add.sprite(250, 170, 'player')
         this.player.body.gravity.y = 500
+        // Create the 'right' animation by looping the frame 1 and 2
+        this.anims.create({
+            key: 'right',
+            frames: this.anims.generateFrameNumbers('player', {frames: [1, 2]}),
+            frameRate: 8,
+            repeat: -1
+        })
+        // Create the 'left' animation by looping the frames 3 and 4
+        this.anims.create({
+            key: 'left',
+            frames: this.anims.generateFrameNumbers('player', {frames: [3, 4]}),
+            frameRate: 8,
+            repeat: -1
+        })
+
         this.arrow = this.input.keyboard.createCursorKeys()
         this.createWorld()
         this.coin = this.physics.add.sprite(60, 130, 'coin')
@@ -19,6 +34,11 @@ class Play {
             callback: () => this.addEnemy(),
             loop: true
         })
+
+        // add sounds
+        this.jumpSound = this.sound.add('jump')
+        this.coinSound = this.sound.add('coin')
+        this.deadSound = this.sound.add('dead')
     }
 
     update() {
@@ -49,15 +69,20 @@ class Play {
         if (this.arrow.left.isDown) {
             // The velocity is in pixels per second
             this.player.body.velocity.x = -200
+            this.player.anims.play('left', true) // Left animation
         } else if (this.arrow.right.isDown) {
             this.player.body.velocity.x = 200
+            this.player.anims.play('right', true) // Right animation
         } else {
             this.player.body.velocity.x = 0
+            this.player.setFrame(0) // Change frame (stand still/idle)
         }
 
         if (this.arrow.up.isDown && this.player.body.onFloor()) {
+            this.jumpSound.play()
             this.player.body.velocity.y = -320  // (jump)
         }
+        
     }
 
     createWorld() {
@@ -79,11 +104,13 @@ class Play {
     }
 
     playerDie() {
+        this.deadSound.play()
         this.scene.start('menu', { score: this.score })
     }
 
     takeCoin() {
         this.score += 5
+        this.coinSound.play()
         // Update the score label by using its 'text' property
         this.scoreLabel.setText('score: ' + this.score)
         // Change the coin position
