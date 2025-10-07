@@ -35,6 +35,17 @@ class Play {
             loop: true
         })
 
+        let particles = this.add.particles('pixel')
+        // Create the emitte
+        this.emitter = particles.createEmitter({
+            // Set the number of particles
+            quantity: 15,
+            speed: { min: -150, max: 150 },
+            scale: { start: 2, end: 0.1 },
+            lifespan: 800,
+            on: false,  // Don't start explosion right away
+        })
+
         // add sounds
         this.jumpSound = this.sound.add('jump')
         this.coinSound = this.sound.add('coin')
@@ -44,10 +55,18 @@ class Play {
     update() {
         // This method is called 60 times per second after 'create()'
         // It will handle all the games logic, like movements
-        // We have to call movePlayer() inside of the update() method:
-        this.movePlayer()
         // Tell Phaser that the player and the walls should collide
         this.physics.collide(this.player, this.walls)
+        // Make the enemies and walls collide
+        this.physics.collide(this.enemies, this.walls)
+        // Don't call playerDie() or movePlayer() when player is dead
+        if (!this.player.active) { 
+            // This condition has to be placed before movePlayer() and playerDie()
+            // or it causes an error within the movePlayer() method at (**)
+            return
+        }
+        // We have to call movePlayer() inside of the update() method:
+        this.movePlayer()
         // If player is below the bottom hole or above the tope hole:
         if (this.player.y > 340 || this.player.y < 0) {
             this.playerDie()
@@ -56,8 +75,6 @@ class Play {
         if (this.physics.overlap(this.player, this.coin)) {
             this.takeCoin()
         }
-        // Make the enemies and walls collide
-        this.physics.collide(this.enemies, this.walls)
         // Call the 'playerDie' method when the player and an enemy overlap
         if (this.physics.overlap(this.player, this.enemies)) {
             this.playerDie()
@@ -68,7 +85,7 @@ class Play {
         // If arrow keys are pressed
         if (this.arrow.left.isDown) {
             // The velocity is in pixels per second
-            this.player.body.velocity.x = -200
+            this.player.body.velocity.x = -200  // (**)
             this.player.anims.play('left', true) // Left animation
         } else if (this.arrow.right.isDown) {
             this.player.body.velocity.x = 200
@@ -104,15 +121,37 @@ class Play {
     }
 
     playerDie() {
+        // Actually kill the player
+        this.player.destroy()
         this.deadSound.play()
-        this.scene.start('menu', { score: this.score })
+        // Set the position of the emitter on top of the player
+        this.emitter.setPosition(this.player.x, this.player.y)
+        this.emitter.explode()  // Start the emitter
+        // Add a delay before going to the menu
+        this.time.addEvent({
+            delay: 1000,
+            callback: () => this.scene.start('menu', { score: this.score })
+        })
     }
 
     takeCoin() {
+
         this.score += 5
         this.coinSound.play()
         // Update the score label by using its 'text' property
         this.scoreLabel.setText('score: ' + this.score)
+        this.coin.setScale(0)
+        this.tweens.add({
+            targets: this.coin,
+            scale: 1,
+            duration: 300
+        })
+        this.tweens.add({
+            targets: this.player,
+            scale: 1.3,
+            duration: 100,
+            yoyo: true, // perform the tween in reverse
+        })
         // Change the coin position
         this.updateCoinPosition()
     }

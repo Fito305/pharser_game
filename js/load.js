@@ -11,6 +11,9 @@ class Load {
         this.load.image('wallV', 'assets/wallVertical.png')
         this.load.image('wallH', 'assets/wallHorizontal.png')
 
+        // Particles effects
+        this.load.image('pixel', 'assets/pixel.png')
+
         // Sound effects
         this.load.audio('jump', ['assets/jump.ogg', 'assets/jump.mp3'])
         this.load.audio('coin', ['assets/coin.ogg', 'assets/coin.mp3'])

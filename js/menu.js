@@ -9,19 +9,35 @@ class Menu {
         // doesn't need physics or animations
         // It's perfect for logos, backgrounds, etc.
         this.add.image(250, 170, 'background')
-        // Display the name of the game
-        let nameLabel = this.add.text(250, 80, 'The Coin Collector',
+        // Display the name of the game and set the y position to -50
+        // so we don't see the label
+        let nameLabel = this.add.text(250, -50, 'The Coin Collector',
             { font: '50px Arial', fill: '#fff' })
+        this.tweens.add({
+            targets: nameLabel,
+            y: 80, // change the y position from -50 to 80
+            duration: 1000,
+            ease: 'bounce.out'
+        })
         nameLabel.setOrigin(0.5, 0.5)
+
         // Display the score
         let scoreText = 'scrore: ' + score
         let scoreLabel = this.add.text(250, 170, scoreText,
             { font: '25px Arial', fill: '#fff' })
         scoreLabel.setOrigin(0.5, 0.5)
+
         // Display how to start the game
         let startText = 'press the up arrow key to start'
         let startLabel = this.add.text(250, 260, startText,
             { font: '25px Arial', fill: '#fff' })
+        this.tweens.add({
+            targets: startLabel,
+            angle: { from: -2, to: 2 },
+            duration: 1000,
+            yoyo: true, // perforom the tween in reverse
+            repeat: -1  // repeat the tween indefinitely
+        })
         startLabel.setOrigin(0.5, 0.5)
         // Store the up arrow key
         this.upKey = this.input.keyboard.addKey('up')
